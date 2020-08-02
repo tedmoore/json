@@ -1,9 +1,65 @@
 JSONReader {
 
 	*new {
-		arg path;
+		arg path, keys_as_strings = false;
 		var string = File(path,"r").readAllString;
-		^super.new.prepareForJSonDict(string).interpret
+		var identity_dict = super.new.prepareForJSonDict(string).interpret.as(IdentityDictionary);
+		if(keys_as_strings.not,{
+			^identity_dict;
+		},{
+			^this.idToD(identity_dict);
+		})
+	}
+
+	*idToD {
+		arg ident_dict, toD = true;
+		var new_dict;
+
+		if(toD,{
+			new_dict = Dictionary.new;
+		},{
+			new_dict = IdentityDictionary.new;
+		});
+
+		ident_dict.keysValuesDo({
+			arg key, val;
+			var new_key;
+
+			if(toD,{
+				new_key = key.asString;
+			},{
+				new_key = key.asSymbol;
+			});
+
+			case
+			{val.isKindOf(Dictionary)}{
+				new_dict.put(new_key,this.idToD(val,toD));
+			}
+			{val.isKindOf(SequenceableCollection)}{
+				new_dict.put(new_key,this.process_seq_col(val,toD));
+			}{
+				new_dict.put(new_key,val);
+			};
+		});
+		^new_dict;
+	}
+
+	*process_seq_col {
+		arg seq_col, toD;
+		^seq_col.collect({
+			arg item;
+			var return;
+			case
+			{item.isKindOf(Dictionary)}{
+				return = this.idToD.(item,toD);
+			}
+			{item.isKindOf(SequenceableCollection) && item.isString.not}{
+				return = this.process_seq_col(item,toD);
+			}{
+				return = item;
+			};
+			return;
+		});
 	}
 
 	getQuotedTextIndices {
