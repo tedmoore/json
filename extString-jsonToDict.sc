@@ -5,7 +5,7 @@ JSONReader {
 		var string = File(path,"r").readAllString;
 		var identity_dict = super.new.prepareForJSonDict(string).interpret.as(IdentityDictionary);
 		if(keys_as_strings.not,{
-			^identity_dict;
+			^this.idToD(identity_dict,false);
 		},{
 			^this.idToD(identity_dict);
 		})
