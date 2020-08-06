@@ -4,17 +4,21 @@ JSONReader {
 		arg path, keys_as_strings = false;
 		var string = File(path,"r").readAllString;
 		var identity_dict = super.new.prepareForJSonDict(string).interpret.as(IdentityDictionary);
+
+		identity_dict.dopostln;
+
 		if(keys_as_strings.not,{
 			^this.idToD(identity_dict,false);
 		},{
 			^this.idToD(identity_dict);
-		})
+		});
 	}
 
 	*idToD {
 		arg ident_dict, toD = true;
 		var new_dict;
 
+		//"ident_dict: %".format(ident_dict).postln;
 		if(toD,{
 			new_dict = Dictionary.new;
 		},{
@@ -25,6 +29,10 @@ JSONReader {
 			arg key, val;
 			var new_key;
 
+			/*			"key: %\t\tval:%".format(key,val).postln;
+			val.class.postln;
+			"".postln;*/
+
 			if(toD,{
 				new_key = key.asString;
 			},{
@@ -32,16 +40,34 @@ JSONReader {
 			});
 
 			case
+			{val.isKindOf(SequenceableCollection).and(val.isString.not)}{
+				new_dict.put(new_key,this.process_seq_col(val,toD));
+			}
 			{val.isKindOf(Dictionary)}{
 				new_dict.put(new_key,this.idToD(val,toD));
 			}
-			{val.isKindOf(SequenceableCollection)}{
-				new_dict.put(new_key,this.process_seq_col(val,toD));
-			}{
-				new_dict.put(new_key,val);
+			{
+				new_dict.put(new_key,this.checkItem(val));
 			};
 		});
 		^new_dict;
+	}
+
+	*checkItem {
+		arg item;
+		var return = nil;
+		item.postln;
+		item.class.postln;
+
+		case
+		{item == "inf"}{return = inf}
+		{item == "-inf"}{return = -inf}
+		{return = item};
+
+		return.postln;
+		return.class.postln;
+		"".postln;
+		^return;
 	}
 
 	*process_seq_col {
@@ -51,12 +77,12 @@ JSONReader {
 			var return;
 			case
 			{item.isKindOf(Dictionary)}{
-				return = this.idToD.(item,toD);
+				return = this.idToD(item,toD);
 			}
 			{item.isKindOf(SequenceableCollection) && item.isString.not}{
 				return = this.process_seq_col(item,toD);
 			}{
-				return = item;
+				return = this.checkItem(item);
 			};
 			return;
 		});
