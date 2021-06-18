@@ -3,9 +3,11 @@ JSONReader {
 	*new {
 		arg path, keys_as_strings = false;
 		var string = File(path,"r").readAllString;
-		var identity_dict = super.new.prepareForJSonDict(string).interpret.as(IdentityDictionary);
+		var identity_dict;
+		//string.postln;
+		identity_dict = super.new.prepareForJSonDict(string).interpret.as(IdentityDictionary);
 
-		identity_dict.dopostln;
+		//identity_dict.dopostln;
 
 		if(keys_as_strings.not,{
 			^this.idToD(identity_dict,false);
@@ -56,17 +58,17 @@ JSONReader {
 	*checkItem {
 		arg item;
 		var return = nil;
-		item.postln;
-		item.class.postln;
+/*		item.postln;
+		item.class.postln;*/
 
 		case
 		{item == "inf"}{return = inf}
 		{item == "-inf"}{return = -inf}
 		{return = item};
 
-		return.postln;
+/*		return.postln;
 		return.class.postln;
-		"".postln;
+		"".postln;*/
 		^return;
 	}
 
